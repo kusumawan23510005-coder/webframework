@@ -20,7 +20,13 @@ class UserController extends Controller
         ];
         Usermodel::create($data);*/
 
-        $user = UserModel::where('level_id', 2)->count();
+        $user = UserModel::firstOrCreate(
+            [
+                'username' => 'manager',
+                'nama' => 'Manager',
+        
+            ],
+        );
        // dd($user); 
         return view('user',['data'=> $user]);
     }
