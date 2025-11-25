@@ -28,6 +28,7 @@ class UserController extends Controller
                 'level_id' => 2
             ],
         );
+        $user->save();
        // dd($user); 
         return view('user',['data'=> $user]);
     }
