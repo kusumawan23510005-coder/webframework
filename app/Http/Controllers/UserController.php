@@ -20,10 +20,7 @@ class UserController extends Controller
         ];
         Usermodel::create($data);*/
 
-        $user = UserModel::findOr(2, ['username', 'nama'], function () {
-            abort(404);
-        });
-
+        $user = UserModel::findOrFail(1); 
         return view('user',['data'=> $user]);
     }
 }
