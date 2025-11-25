@@ -1,9 +1,10 @@
 <?php
 
-// ↓↓↓ PERBAIKI BARIS INI ↓↓↓
-use App\Http\Controllers\LevelController; 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WelcomeController; // Sebaiknya tambahkan ini juga
+use App\Http\Controllers\LevelController; 
+use App\Http\Controllers\KategoriController; 
+use App\Http\Controllers\UserController; 
 
 Route::get('/', function () {
     return view('welcome');
@@ -11,7 +12,8 @@ Route::get('/', function () {
 
 // Baris ini sekarang sudah benar karena import di atas sudah diperbaiki
 Route::get('/level', [LevelController::class, 'index']);
-
+Route::get('/kategori', [KategoriController::class, 'index']);
+Route::get('/user', [UserController::class, 'index']);
 
 Route::get('/posts/{post}/comments/{comment}', function
 ($postId, $commentId) {
