@@ -20,11 +20,10 @@ class UserController extends Controller
         ];
         Usermodel::create($data);*/
 
-        $user = UserModel::firstOrCreate(
+        $user = UserModel::firstOrNew(
             [
-                'username' => 'manager',
-                'nama' => 'Manager',
-        
+                'username' => 'manager22',
+                'nama' => 'Manager dua duaa',
             ],
         );
        // dd($user); 
