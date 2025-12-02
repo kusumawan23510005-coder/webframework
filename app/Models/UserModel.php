@@ -10,12 +10,12 @@ class UserModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'm_user';
+    protected $table = 'm_user'; // Sesuaikan nama tabel di database Anda
     protected $primaryKey = 'user_id';
 
+    protected $fillable = ['level_id', 'username', 'nama', 'password'];
 
-    protected $fillable = ['level_id','username','nama','password'];
-
+    // --- FUNGSI INI YANG MEMBUAT ERROR JIKA HILANG ---
     public function level(): BelongsTo
     {
         return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
