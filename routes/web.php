@@ -6,9 +6,9 @@ use App\Http\Controllers\LevelController;
 use App\Http\Controllers\KategoriController; 
 use App\Http\Controllers\UserController; 
 
-Route::get('/', function () {
-    return view('welcome');
-});
+//Route::get('/', function () {
+//    return view('welcome');
+//});
 
 // Baris ini sekarang sudah benar karena import di atas sudah diperbaiki
 Route::get('/level', [LevelController::class, 'index']);
@@ -19,6 +19,9 @@ Route::post('/user/tambah_simpan', [UserController::class, 'tambah_simpan']);
 Route::get('/user/ubah/{id}', [UserController::class, 'ubah']);
 Route::put('/user/ubah_simpan/{id}', [UserController::class, 'ubah_simpan']);
 Route::get('/user/hapus/{id}', [UserController::class, 'hapus']);
+Route::get('/', [WelcomeController::class,'index']); // Ini sudah benar
+
+
 
 Route::get('/posts/{post}/comments/{comment}', function
 ($postId, $commentId) {
@@ -29,4 +32,3 @@ Route::get('/user/{name?}/alamat/{alamat}', function ($name=null , $alamat=null)
     return 'Nama saya '.$name. " alamat "  .$alamat;
 });
 
-Route::get('/hello',[WelcomeController::class,'hello']); // Ini sudah benar

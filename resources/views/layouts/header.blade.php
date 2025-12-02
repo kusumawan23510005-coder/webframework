@@ -1,5 +1,5 @@
 <!-- Navbar -->
-  @include('layouts.header')
+
   <!-- /.navbar -->
 
   <!-- main Sidebar container-->
