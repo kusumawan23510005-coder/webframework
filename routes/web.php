@@ -6,9 +6,7 @@ use App\Http\Controllers\WelcomeController; // Sebaiknya tambahkan ini juga
 //use App\Http\Controllers\KategoriController; 
 use App\Http\Controllers\UserController;
 
-//Route::get('/', function () {
-//    return view('welcome');
-//});
+Route::get('/', [UserController::class, 'index']);
 
 // Baris ini sekarang sudah benar karena import di atas sudah diperbaiki
 
@@ -21,6 +19,10 @@ Route::group(['prefix' => 'user'], function () {
 
     Route::get('/create_ajax', [UserController::class, 'create_ajax']);
     Route::post('/ajax', [UserController::class, 'store_ajax']);
+
+    Route::get('/{id}/edit_ajax', [UserController::class, 'edit_ajax']);
+    Route::put('/{id}/update_ajax', [UserController::class, 'update_ajax']);
+
 
     Route::get('/{id}', [UserController::class, 'show']);       // Detail User
     Route::get('/{id}/edit', [UserController::class, 'edit']);  // Halaman Form Edit

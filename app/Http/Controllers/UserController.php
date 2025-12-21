@@ -42,12 +42,15 @@ class UserController extends Controller
         return DataTables::of($users)
             ->addIndexColumn()
             ->addColumn('aksi', function ($user) {
-                $btn  = '<a href="' . url('/user/' . $user->user_id) . '" class="btn btn-info btn-sm">Detail</a> ';
+              /*  $btn  = '<a href="' . url('/user/' . $user->user_id) . '" class="btn btn-info btn-sm">Detail</a> ';
                 $btn .= '<a href="' . url('/user/' . $user->user_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
                 $btn .= '<form class="d-inline-block" method="POST" action="' . url('/user/' . $user->user_id) . '">'
                     . csrf_field() . method_field('DELETE') .
-                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';
-                return $btn;
+                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';*/
+            $btn = '<button onclick="modalAction(\'' .url('/user/' . $user->user_id . '/show_ajax').'\')" class="btn btn-info btn-sm">Detail</button> ';
+            $btn .= '<button onclick="modalAction(\'' .url('/user/' . $user->user_id . '/edit_ajax').'\')" class="btn btn-warning btn-sm">Edit</button> ';
+            $btn .= '<button onclick="modalAction(\'' .url('/user/' . $user->user_id . '/delete_ajax').'\')" class="btn btn-danger btn-sm">Hapus</button>'; 
+              return $btn;
             })
             ->rawColumns(['aksi'])
             ->make(true);
@@ -210,7 +213,12 @@ class UserController extends Controller
                     'msgField' => $validator->errors()]);
             }
  
-            UserModel::create([$request->all()]);
+            UserModel::create([
+                'username' => $request->username,
+                'nama'     => $request->nama,
+                'level_id' => $request->level_id,
+                'password' => bcrypt($request->password) // Password wajib di-hash
+            ]);
             return response()->json([
                 'status' => true,
                 'message' => 'Berhasil menambahkan user',
@@ -218,6 +226,49 @@ class UserController extends Controller
             ]);
         }
         redirect('/');
+    }
+
+    //menamplikan halaman edit
+    public function edit_ajax($id)
+    {
+        $level = LevelModel::select('level_id', 'level_nama',)->get();
+        $user = UserModel::find($id);
+        return view('user.edit_ajax',['user' => $user, 'level' => $level]);
+        
+    }
+
+    public function update_ajax(Request $request, $id)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'level_id' => 'required|integer',
+                'username' => 'required|max:20|unique:m_user,username,'.$id.',user_id',
+                'password' => 'required|min:6|max:20',
+                'nama'     => 'required|max:100',
+            ];
+
+            $check = UserModel::find($id); // <--- Cari data lama
+
+            if ($check) {
+                // PERBAIKAN 3: Cek apakah password diisi atau tidak
+                if (!$request->filled('password')) {
+                    // Jika kosong, hapus dari request (agar password lama TIDAK tertimpa kosong)
+                    $request->request->remove('password');
+                } 
+                $check->update($request->all());
+
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'Data berhasil diupdate'
+                ]);
+            } else {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Data tidak ditemukan'
+                ]);
+            }
+        }
+        return redirect('/');
     }
 
 }
