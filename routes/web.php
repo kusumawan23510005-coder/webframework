@@ -19,6 +19,9 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('/create', [UserController::class, 'create']);   // Halaman Form Tambah
     Route::post('/', [UserController::class, 'store']);         // Simpan Data Baru (Standard Laravel: POST /user)
 
+    Route::get('/create_ajax', [UserController::class, 'create_ajax']);
+    Route::post('/ajax', [UserController::class, 'store_ajax']);
+
     Route::get('/{id}', [UserController::class, 'show']);       // Detail User
     Route::get('/{id}/edit', [UserController::class, 'edit']);  // Halaman Form Edit
     Route::put('/{id}', [UserController::class, 'update']);     // Simpan Perubahan (Standard Laravel: PUT /user/{id})

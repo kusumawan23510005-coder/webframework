@@ -1,11 +1,13 @@
 @extends('layouts.template')
 
 @section('content')
+<div id="myModal" class="modal faded animate shake" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" data-width="75%" aria-hidden="true"></div>
 <div class="card card-outline card-primary">
     <div class="card-header">
         <h3 class="card-title">{{ $page->title }}</h3>
         <div class="card-tools">
             <a class="btn btn-sm btn-primary mt-1" href="{{ url('user/create') }}">Tambah</a>
+            <button onclick="modalAction('{{ url('user/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah Ajax</button>
         </div>
     </div>
     <div class="card-body">
@@ -55,12 +57,22 @@
 @endpush
 
 @push('js')
+    
+
+
     <script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
+        function modalAction(url = ''){
+        $('#myModal').load(url,function(){
+            $('#myModal').modal('show');
+        });
+    }
+
+
         $(document).ready(function() {
             var dataUser = $('#table_user').DataTable({
                 serverSide: true,
