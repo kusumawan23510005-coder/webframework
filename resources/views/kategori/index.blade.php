@@ -6,8 +6,7 @@
     <div class="card-header">
         <h3 class="card-title">{{ $page->title }}</h3>
         <div class="card-tools">
-            <a class="btn btn-sm btn-primary mt-1" href="{{ url('level/create') }}">Tambah</a>
-            <button onclick="modalAction('{{ url('level/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah Ajax</button>
+            <button onclick="modalAction('{{ url('/kategori/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah Ajax</button>
         </div>
     </div>
     <div class="card-body">
@@ -18,12 +17,12 @@
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        <table class="table table-bordered table-striped table-hover table-sm" id="table_level">
+        <table class="table table-bordered table-striped table-hover table-sm" id="table_kategori">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Kode Level</th>
-                    <th>Nama Level</th>
+                    <th>Kode Kategori</th>
+                    <th>Nama Kategori</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -36,33 +35,24 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-
-
     <script>
         function modalAction(url = ''){
-        $('#myModal').load(url,function(){
-            $('#myModal').modal('show');
-        });
-    }
+            $('#myModal').load(url,function(){
+                $('#myModal').modal('show');
+            });
+        }
 
-        var dataLevel;
+        var dataKategori;
 
         $(document).ready(function() {
-             dataLevel = $('#table_level').DataTable({
+            dataKategori = $('#table_kategori').DataTable({
                 serverSide: true,
                 ajax: {
-                    "url": "{{ url('level/list') }}",
+                    "url": "{{ url('kategori/list') }}",
                     "dataType": "json",
                     "type": "POST",
-                    "headers": {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
                     "data": function (d) {
-                    
+                        d._token = "{{ csrf_token() }}";
                     }
                 },
                 columns: [
@@ -72,16 +62,16 @@
                         orderable: false,
                         searchable: false
                     }, {
-                        data: "level_kode",
+                        data: "kategori_kode",
                         className: "",
                         orderable: true,
                         searchable: true
                     }, {
-                        data: "level_nama",
+                        data: "kategori_nama",
                         className: "",
                         orderable: true,
                         searchable: true
-                    },{
+                    }, {
                         data: "aksi",
                         className: "",
                         orderable: false,
@@ -89,7 +79,6 @@
                     }
                 ]
             });
-
         });
     </script>
 @endpush
