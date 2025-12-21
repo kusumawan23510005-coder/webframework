@@ -229,7 +229,7 @@ class UserController extends Controller
     }
 
     //menamplikan halaman edit
-    public function edit_ajax($id)
+    public function edit_ajax(string $id)
     {
         $level = LevelModel::select('level_id', 'level_nama',)->get();
         $user = UserModel::find($id);
@@ -243,8 +243,8 @@ class UserController extends Controller
             $rules = [
                 'level_id' => 'required|integer',
                 'username' => 'required|max:20|unique:m_user,username,'.$id.',user_id',
-                'password' => 'required|min:6|max:20',
                 'nama'     => 'required|max:100',
+                'password' => 'nullable|min:5|max:20',
             ];
 
             $check = UserModel::find($id); // <--- Cari data lama
@@ -261,6 +261,43 @@ class UserController extends Controller
                     'status'  => true,
                     'message' => 'Data berhasil diupdate'
                 ]);
+            } else {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Data tidak ditemukan'
+                ]);
+            }
+        }
+        return redirect('/');
+    }
+
+    public function confirm_ajax(string $id)
+    {
+        $user = UserModel::find($id);
+        return view('user.confirm_ajax', ['user' => $user]);
+    }
+
+    public function delete_ajax(Request $request, $id)
+    {
+        // Cek request Ajax
+        if ($request->ajax() || $request->wantsJson()) {
+            $user = UserModel::find($id);
+
+            if ($user) {
+                try {
+                  
+                    $user->delete();
+
+                    return response()->json([
+                        'status'  => true,
+                        'message' => 'Data berhasil dihapus'
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => 'Data gagal dihapus karena masih terkait dengan data lain'
+                    ]);
+                }
             } else {
                 return response()->json([
                     'status'  => false,
