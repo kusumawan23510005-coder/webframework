@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WelcomeController; // Sebaiknya tambahkan ini juga
 use App\Http\Controllers\LevelController; 
@@ -12,6 +13,15 @@ use App\Http\Controllers\BarangController;
 Route::get('/', [UserController::class, 'index']);
 
 // Baris ini sekarang sudah benar karena import di atas sudah diperbaiki
+
+Route::pattern('id', '[0-9]+');
+Route::get('login', [AuthController::class, 'login'])->name('login');
+Route::post('login', [AuthController::class, 'postLogin']);
+Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/', [WelcomeController::class, 'index']);
+
 
 Route::group(['prefix' => 'user'], function () {
     Route::get('/', [UserController::class, 'index']);          // Halaman awal user
@@ -91,4 +101,5 @@ Route::group(['prefix' => 'barang'], function () {
 
     Route::get('/{id}/delete_ajax', [BarangController::class, 'confirm_ajax']);
     Route::delete('/{id}/delete_ajax', [BarangController::class, 'delete_ajax']);
+});
 });

@@ -5,15 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
-class UserModel extends Model
+use Illuminate\Foundation\Auth\User as Authenticatable;
+class UserModel extends Authenticatable
 {
     use HasFactory;
 
     protected $table = 'm_user'; // Sesuaikan nama tabel di database Anda
     protected $primaryKey = 'user_id';
 
-    protected $fillable = ['level_id', 'username', 'nama', 'password'];
+    protected $fillable = ['level_id', 'username', 'nama', 'password', 'created_at', 'updated_at'];
+
+    protected $hidden = ['password'];
+
+    protected $casts = ['password' => 'hashed'];
 
     // --- FUNGSI INI YANG MEMBUAT ERROR JIKA HILANG ---
     public function level(): BelongsTo
