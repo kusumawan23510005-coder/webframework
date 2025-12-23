@@ -14,26 +14,29 @@ class SupplierSeeder extends Seeder
     public function run(): void
     {
         $data = [
-            // Sesuaikan nama kolom dengan migrasi
             [
-                'nama_supplier' => 'PT. Sumber Jaya', // <- DIUBAH
-                'alamat' => 'Malang',                 // <- DIUBAH
+                'supplier_kode' => 'SUP1',           // <-- Tambahkan Kode
+                'supplier_nama' => 'PT. Sumber Jaya', // <-- Sesuaikan Nama Kolom
+                'supplier_alamat' => 'Malang',        // <-- Sesuaikan Nama Kolom
                 'created_at' => now(),
-                'updated_at' => now()                 // <- DITAMBAHKAN
+                'updated_at' => now()
             ],
             [
-                'nama_supplier' => 'CV. Maju Terus',  // <- DIUBAH
-                'alamat' => 'Surabaya',               // <- DIUBAH
+                'supplier_kode' => 'SUP2',
+                'supplier_nama' => 'CV. Maju Terus',
+                'supplier_alamat' => 'Surabaya',
                 'created_at' => now(),
-                'updated_at' => now()                 // <- DITAMBAHKAN
+                'updated_at' => now()
             ],
             [
-                'nama_supplier' => 'Toko Barokah',    // <- DIUBAH
-                'alamat' => 'Jakarta',                // <- DIUBAH
+                'supplier_kode' => 'SUP3',
+                'supplier_nama' => 'Toko Barokah',
+                'supplier_alamat' => 'Jakarta',
                 'created_at' => now(),
-                'updated_at' => now()                 // <- DITAMBAHKAN
+                'updated_at' => now()
             ],
         ];
+
         DB::table('m_supplier')->insert($data);
     }
 }

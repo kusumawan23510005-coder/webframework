@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('m_supplier', function (Blueprint $table) {
             $table->id('supplier_id');
-            $table->string('nama_supplier', 100);
-            $table->string('alamat', 255)->nullable();
-            $table->string('telepon', 20)->nullable();
+            $table->string('supplier_kode', 10)->unique(); // Kita butuh ini agar konsisten
+            $table->string('supplier_nama', 100);          // Pakai format supplier_nama
+            $table->string('supplier_alamat', 255);        // Pakai format supplier_alamat
             $table->timestamps();
         });
     }

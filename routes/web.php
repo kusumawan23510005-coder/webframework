@@ -5,6 +5,8 @@ use App\Http\Controllers\WelcomeController; // Sebaiknya tambahkan ini juga
 use App\Http\Controllers\LevelController; 
 use App\Http\Controllers\KategoriController; 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\BarangController;
 
 
 Route::get('/', [UserController::class, 'index']);
@@ -61,4 +63,32 @@ Route::put('/{id}/update_ajax', [KategoriController::class, 'update_ajax']);
 
     Route::get('/{id}/delete_ajax', [KategoriController::class, 'confirm_ajax']);
     Route::delete('/{id}/delete_ajax', [KategoriController::class, 'delete_ajax']);
+});
+
+Route::group(['prefix' => 'supplier'], function () {
+    Route::get('/', [SupplierController::class, 'index']);
+    Route::post('/list', [SupplierController::class, 'list']);
+
+    Route::get('/create_ajax', [SupplierController::class, 'create_ajax']);
+    Route::post('/ajax', [SupplierController::class, 'store_ajax']);
+
+    Route::get('/{id}/edit_ajax', [SupplierController::class, 'edit_ajax']);
+    Route::put('/{id}/update_ajax', [SupplierController::class, 'update_ajax']);
+
+    Route::get('/{id}/delete_ajax', [SupplierController::class, 'confirm_ajax']);
+    Route::delete('/{id}/delete_ajax', [SupplierController::class, 'delete_ajax']);
+});
+
+Route::group(['prefix' => 'barang'], function () {
+    Route::get('/', [BarangController::class, 'index']);
+    Route::post('/list', [BarangController::class, 'list']);
+
+    Route::get('/create_ajax', [BarangController::class, 'create_ajax']);
+    Route::post('/ajax', [BarangController::class, 'store_ajax']);
+
+    Route::get('/{id}/edit_ajax', [BarangController::class, 'edit_ajax']);
+    Route::put('/{id}/update_ajax', [BarangController::class, 'update_ajax']);
+
+    Route::get('/{id}/delete_ajax', [BarangController::class, 'confirm_ajax']);
+    Route::delete('/{id}/delete_ajax', [BarangController::class, 'delete_ajax']);
 });
