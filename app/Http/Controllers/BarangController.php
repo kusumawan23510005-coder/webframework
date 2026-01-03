@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\BarangModel;
 use App\Models\KategoriModel;
-use App\Models\SupplierModel; // Jangan lupa import Supplier
+use App\Models\SupplierModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BarangController extends Controller
 {
@@ -119,7 +121,6 @@ class BarangController extends Controller
         return redirect('/');
     }
 
-    
     public function confirm_ajax(string $id)
     {
         $barang = BarangModel::find($id);
@@ -141,5 +142,138 @@ class BarangController extends Controller
             return response()->json(['status' => false, 'message' => 'Data tidak ditemukan']);
         }
         return redirect('/');
+    }
+
+    // --- FUNGSI IMPORT ---
+    public function import()
+    {
+        return view('barang.import');
+    }
+
+    public function import_ajax(Request $request)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            // Validasi file harus xlsx dan maks 1MB
+            $rules = [
+                'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
+            ];
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi Gagal',
+                    'msgField' => $validator->errors()
+                ]);
+            }
+
+            $file = $request->file('file_barang');
+            $reader = IOFactory::createReader('Xlsx');
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $data = $sheet->toArray(null, false, true, true);
+
+            $insert = [];
+            if (count($data) > 1) {
+                foreach ($data as $baris => $value) {
+                    if ($baris > 1) {
+                        $insert[] = [
+                            'kategori_id' => $value['A'],
+                            'kode_barang' => $value['B'], // PERBAIKAN: Gunakan kode_barang
+                            'nama_barang' => $value['C'], // PERBAIKAN: Gunakan nama_barang
+                            'harga_beli' => $value['D'],
+                            'harga_jual' => $value['E'],
+                            'created_at' => now(),
+                        ];
+                    }
+                }
+                if (count($insert) > 0) {
+                    BarangModel::insertOrIgnore($insert);
+                }
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Data berhasil diimport'
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Tidak ada data yang diimport'
+                ]);
+            }
+        }
+        return redirect('/');
+    }
+
+    // --- FUNGSI EXPORT EXCEL ---
+    public function export_excel()
+    {
+        // 1. Ambil data barang (PERBAIKAN: Select kode_barang & nama_barang)
+        $barang = BarangModel::select('kategori_id', 'kode_barang', 'nama_barang', 'harga_beli', 'harga_jual')
+            ->orderBy('kategori_id')
+            ->with('kategori')
+            ->get();
+
+        // 2. Load Library Excel
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // 3. Set Header Kolom
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Kode Barang');
+        $sheet->setCellValue('C1', 'Nama Barang');
+        $sheet->setCellValue('D1', 'Harga Beli');
+        $sheet->setCellValue('E1', 'Harga Jual');
+        $sheet->setCellValue('F1', 'Kategori');
+
+        $sheet->getStyle('A1:F1')->getFont()->setBold(true); // Bold Header
+
+        // 4. Isi Data (Looping)
+        $no = 1;
+        $baris = 2;
+        foreach ($barang as $key => $value) {
+            $sheet->setCellValue('A' . $baris, $no);
+            $sheet->setCellValue('B' . $baris, $value->kode_barang); // PERBAIKAN: Gunakan kode_barang
+            $sheet->setCellValue('C' . $baris, $value->nama_barang); // PERBAIKAN: Gunakan nama_barang
+            $sheet->setCellValue('D' . $baris, $value->harga_beli);
+            $sheet->setCellValue('E' . $baris, $value->harga_jual);
+            $sheet->setCellValue('F' . $baris, $value->kategori->kategori_nama);
+            $baris++;
+            $no++;
+        }
+
+        // 5. Auto Size Kolom (PERBAIKAN: Loop range kolom, bukan data barang)
+        foreach (range('A', 'F') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        $sheet->setTitle('Data Barang');
+
+        // 6. Download File
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data Barang ' . date('Y-m-d H:i:s') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
+    }
+
+    // --- FUNGSI EXPORT PDF ---
+    public function export_pdf()
+    {
+        // PERBAIKAN: Gunakan kode_barang dan nama_barang
+        $barang = BarangModel::select('kategori_id', 'kode_barang', 'nama_barang', 'harga_beli', 'harga_jual')
+            ->orderBy('kategori_id')
+            ->orderBy('kode_barang') // PERBAIKAN: Order by kode_barang
+            ->with('kategori')
+            ->get();
+
+        $pdf = Pdf::loadView('barang.export_pdf', ['barang' => $barang]);
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOption("isRemoteEnabled", true);
+
+        return $pdf->stream('Data Barang ' . date('Y-m-d H:i:s') . '.pdf');
     }
 }
