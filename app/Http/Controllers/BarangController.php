@@ -34,10 +34,11 @@ class BarangController extends Controller
     {
         // Ambil data dengan 2 relasi
         $barangs = BarangModel::select('barang_id', 'kategori_id', 'supplier_id', 'kode_barang', 'nama_barang', 'stok', 'harga_beli', 'harga_jual')
-            ->with(['kategori', 'supplier']);
+            ->with(['kategori', 'supplier'])
+            ->orderBy('kode_barang', 'asc'); // <--- TAMBAHAN: Mengurutkan A-Z
 
         return DataTables::of($barangs)
-            ->addIndexColumn()
+            ->addIndexColumn() // Menambahkan nomor urut (DT_RowIndex)
             ->addColumn('kategori_nama', function ($barang) {
                 return $barang->kategori->kategori_nama;
             })
@@ -153,11 +154,13 @@ class BarangController extends Controller
     public function import_ajax(Request $request)
     {
         if ($request->ajax() || $request->wantsJson()) {
-            // Validasi file harus xlsx dan maks 1MB
             $rules = [
+                // Validasi file harus xlsx dan maks 1MB
                 'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
             ];
+
             $validator = Validator::make($request->all(), $rules);
+
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
@@ -167,38 +170,56 @@ class BarangController extends Controller
             }
 
             $file = $request->file('file_barang');
-            $reader = IOFactory::createReader('Xlsx');
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
             $reader->setReadDataOnly(true);
             $spreadsheet = $reader->load($file->getRealPath());
             $sheet = $spreadsheet->getActiveSheet();
             $data = $sheet->toArray(null, false, true, true);
 
             $insert = [];
-            if (count($data) > 1) {
+
+            if (count($data) > 1) { // Artinya ada data selain header
                 foreach ($data as $baris => $value) {
-                    if ($baris > 1) {
+                    if ($baris > 1) { // Lewati baris ke-1 (Header)
+
+                        // Batalkan jika baris kosong (cegah error baris terakhir kosong)
+                        if (empty($value['C'])) continue;
+
                         $insert[] = [
                             'kategori_id' => $value['A'],
-                            'kode_barang' => $value['B'], // PERBAIKAN: Gunakan kode_barang
-                            'nama_barang' => $value['C'], // PERBAIKAN: Gunakan nama_barang
-                            'harga_beli' => $value['D'],
-                            'harga_jual' => $value['E'],
-                            'created_at' => now(),
+                            'supplier_id' => $value['B'],
+                            'kode_barang' => $value['C'],
+                            'nama_barang' => $value['D'],
+                            'harga_beli'  => $value['E'],
+                            'harga_jual'  => $value['F'],
+                            'created_at'  => now(),
+                            'updated_at'  => now(), // <--- INI PERBAIKANNYA (Baris yang sebelumnya hilang)
                         ];
                     }
                 }
+
                 if (count($insert) > 0) {
-                    BarangModel::insertOrIgnore($insert);
+                    // Gunakan insert normal agar error terlihat jika ada duplikat/format salah
+                    // Jika data duplikat, akan muncul error di console/network tab (SQLSTATE...)
+                    try {
+                        BarangModel::insert($insert);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'Error SQL: ' . $e->getMessage()
+                        ]);
+                    }
+
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Data berhasil diimport'
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Tidak ada data valid yang diimport'
+                    ]);
                 }
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Data berhasil diimport'
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Tidak ada data yang diimport'
-                ]);
             }
         }
         return redirect('/');

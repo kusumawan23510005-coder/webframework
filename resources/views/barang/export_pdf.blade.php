@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -20,6 +21,7 @@
         .d-block {
             display: block;
         }
+        /* PERBAIKAN 1: Class ini harus dipanggil di tag IMG nanti */
         img.image {
             width: auto;
             height: 80px;
@@ -47,6 +49,10 @@
         .font-13 {
             font-size: 13pt;
         }
+        /* PERBAIKAN 2: Menambahkan CSS untuk font-bold yang sebelumnya hilang */
+        .font-bold {
+            font-weight: bold;
+        }
         .border-bottom-header {
             border-bottom: 1px solid;
         }
@@ -58,13 +64,16 @@
 <body>
     <table class="border-bottom-header">
         <tr>
-            <td width="15%" class="text-center"><img src="{{ public_path('polinema-bw.png') }}" class="image"></td>
+            <td width="15%" class="text-center">
+                <img src="{{ public_path('logo_kampus.jpeg') }}" class="image">
+            </td>
+
             <td width="85%">
                 <span class="text-center d-block font-11 font-bold mb-1">KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</span>
-                <span class="text-center d-block font-13 font-bold mb-1">POLITEKNIK NEGERI MALANG</span>
-                <span class="text-center d-block font-10">Jl. Soekarno-Hatta No. 9 Malang 65141</span>
-                <span class="text-center d-block font-10">Telepon (0341) 404424 Pes. 101-105, 0341-404420, Fax. (0341) 404420</span>
-                <span class="text-center d-block font-10">Laman: www.polinema.ac.id</span>
+                <span class="text-center d-block font-13 font-bold mb-1">STMIK PPKIA Pradnya Paramita MALANG</span>
+                <span class="text-center d-block font-10">Jl. Laksda Adi Sucipto No. 249-A Malang - 65141</span>
+                <span class="text-center d-block font-10">Telepon (0341) 412699, Fax. (0341) 412782</span>
+                <span class="text-center d-block font-10">Laman: www.stimata.ac.id E-mail : seket@stimata.ac.id</span>
             </td>
         </tr>
     </table>
@@ -86,13 +95,11 @@
             @foreach($barang as $b)
             <tr>
                 <td class="text-center">{{ $loop->iteration }}</td>
-                <td>{{ $b->kode_barang }}</td>
-                
+                <td>{{ $b->kode_barang }}</td> 
                 <td>{{ $b->nama_barang }}</td> 
-                
                 <td class="text-right">Rp {{ number_format($b->harga_beli, 0, ',', '.') }}</td>
                 <td class="text-right">Rp {{ number_format($b->harga_jual, 0, ',', '.') }}</td>
-                <td>{{ $b->kategori->kategori_nama }}</td>
+                <td>{{ $b->kategori->kategori_nama ?? '-' }}</td>
             </tr>
             @endforeach
         </tbody>
