@@ -51,15 +51,27 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/list', [UserController::class, 'list']);
         Route::get('/create', [UserController::class, 'create']);
         Route::post('/', [UserController::class, 'store']);
+
+        // Ajax Create
         Route::get('/create_ajax', [UserController::class, 'create_ajax']);
         Route::post('/ajax', [UserController::class, 'store_ajax']);
+
+        // Show / Detail (Standard & Ajax)
         Route::get('/{id}', [UserController::class, 'show']);
+        Route::get('/{id}/show_ajax', [UserController::class, 'show_ajax']); // <--- TAMBAHAN PENTING
+
+        // Edit (Standard & Ajax)
         Route::get('/{id}/edit', [UserController::class, 'edit']);
         Route::put('/{id}', [UserController::class, 'update']);
         Route::get('/{id}/edit_ajax', [UserController::class, 'edit_ajax']);
         Route::put('/{id}/update_ajax', [UserController::class, 'update_ajax']);
-        Route::get('/{id}/delete_ajax', [UserController::class, 'confirm_ajax']);
+
+        // Delete (Ajax)
+        // Perhatikan: URL ini harus match dengan tombol di Controller (confirm_ajax)
+        Route::get('/{id}/confirm_ajax', [UserController::class, 'confirm_ajax']);
         Route::delete('/{id}/delete_ajax', [UserController::class, 'delete_ajax']);
+
+        // Delete (Standard)
         Route::delete('/{id}', [UserController::class, 'destroy']);
     });
 
@@ -114,4 +126,32 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/export_excel', [BarangController::class, 'export_excel']);
         Route::get('/export_pdf', [BarangController::class, 'export_pdf']);
     });
+
+    // --- STOK BARANG (Level: ADM, MNG, STF) ---
+    Route::group(['prefix' => 'stok', 'middleware' => 'authorize:ADM,MNG,STF'], function () {
+        Route::get('/', [StokController::class, 'index']);           // Halaman Awal
+        Route::post('/list', [StokController::class, 'list']);       // DataTables JSON
+
+        Route::get('/create_ajax', [StokController::class, 'create_ajax']); // Form Tambah
+        Route::post('/ajax', [StokController::class, 'store_ajax']);        // Simpan
+
+        Route::get('/{id}/edit_ajax', [StokController::class, 'edit_ajax']);     // Form Edit
+        Route::put('/{id}/update_ajax', [StokController::class, 'update_ajax']); // Update
+
+        Route::get('/{id}/delete_ajax', [StokController::class, 'confirm_ajax']); // Form Konfirmasi Hapus
+        Route::delete('/{id}/delete_ajax', [StokController::class, 'delete_ajax']); // Hapus
+
+        Route::get('/{id}/show_ajax', [StokController::class, 'show_ajax']);      // Detail
+    });
+
+    // --- PENJUALAN ---
+    Route::group(['prefix' => 'penjualan', 'middleware' => 'authorize:ADM,MNG,STF,JNT'], function () {
+        Route::get('/', [PenjualanController::class, 'index']);
+        Route::post('/list', [PenjualanController::class, 'list']);
+        Route::get('/{id}/show_ajax', [PenjualanController::class, 'show_ajax']);
+
+        // --- TAMBAHAN BARU UNTUK KASIR ---
+        Route::get('/create', [PenjualanController::class, 'create']); // Halaman Kasir
+        Route::post('/store', [PenjualanController::class, 'store']);   // Proses Simpan
+    }); 
 });

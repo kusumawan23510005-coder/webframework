@@ -155,12 +155,9 @@ class BarangController extends Controller
     {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
-                // Validasi file harus xlsx dan maks 1MB
                 'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
             ];
-
             $validator = Validator::make($request->all(), $rules);
-
             if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
@@ -177,50 +174,61 @@ class BarangController extends Controller
             $data = $sheet->toArray(null, false, true, true);
 
             $insert = [];
+            $count = 0;
+            $skipped = 0;
 
-            if (count($data) > 1) { // Artinya ada data selain header
-                foreach ($data as $baris => $value) {
-                    if ($baris > 1) { // Lewati baris ke-1 (Header)
+            // ARRAY PENCATAT SEMENTARA (Agar tidak duplikat di file yang sama)
+            $processedKode = [];
+            $processedNama = [];
 
-                        // Batalkan jika baris kosong (cegah error baris terakhir kosong)
-                        if (empty($value['C'])) continue;
+            foreach ($data as $baris => $value) {
+                if ($baris > 1) { // Lewati header
 
-                        $insert[] = [
-                            'kategori_id' => $value['A'],
-                            'supplier_id' => $value['B'],
-                            'kode_barang' => $value['C'],
-                            'nama_barang' => $value['D'],
-                            'harga_beli'  => $value['E'],
-                            'harga_jual'  => $value['F'],
-                            'created_at'  => now(),
-                            'updated_at'  => now(), // <--- INI PERBAIKANNYA (Baris yang sebelumnya hilang)
-                        ];
-                    }
-                }
+                    $kodeBarang = trim($value['C']);
+                    $namaBarang = trim($value['D']);
 
-                if (count($insert) > 0) {
-                    // Gunakan insert normal agar error terlihat jika ada duplikat/format salah
-                    // Jika data duplikat, akan muncul error di console/network tab (SQLSTATE...)
-                    try {
-                        BarangModel::insert($insert);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        return response()->json([
-                            'status' => false,
-                            'message' => 'Error SQL: ' . $e->getMessage()
-                        ]);
+                    if (empty($kodeBarang) || empty($namaBarang)) continue;
+
+                    // --- CEK 1: Apakah ada di DATABASE? ---
+                    $dbKode = BarangModel::where('kode_barang', $kodeBarang)->exists();
+                    $dbNama = BarangModel::where('nama_barang', $namaBarang)->exists();
+
+                    // --- CEK 2: Apakah ada di ANTRIAN SAAT INI (File Excel yg sama)? ---
+                    $dupKode = in_array($kodeBarang, $processedKode);
+                    $dupNama = in_array($namaBarang, $processedNama);
+
+                    // JIKA SALAH SATU TRUE -> SKIP
+                    if ($dbKode || $dbNama || $dupKode || $dupNama) {
+                        $skipped++;
+                        continue; // Lewati baris ini
                     }
 
-                    return response()->json([
-                        'status' => true,
-                        'message' => 'Data berhasil diimport'
-                    ]);
-                } else {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'Tidak ada data valid yang diimport'
-                    ]);
+                    // Jika Lolos semua seleksi, catat ke antrian
+                    $processedKode[] = $kodeBarang; // Catat kode ini sudah diproses
+                    $processedNama[] = $namaBarang; // Catat nama ini sudah diproses
+
+                    $insert[] = [
+                        'kategori_id' => $value['A'],
+                        'supplier_id' => $value['B'],
+                        'kode_barang' => $kodeBarang,
+                        'nama_barang' => $namaBarang,
+                        'harga_beli'  => $value['E'],
+                        'harga_jual'  => $value['F'],
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ];
+                    $count++;
                 }
             }
+
+            if (count($insert) > 0) {
+                BarangModel::insert($insert);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => "Selesai. Masuk: $count data. Gagal/Duplikat: $skipped data."
+            ]);
         }
         return redirect('/');
     }

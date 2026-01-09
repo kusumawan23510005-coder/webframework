@@ -15,10 +15,9 @@
         </div>
     </div>
 @else
-    {{-- Perhatikan action form mengarah ke update_ajax --}}
     <form action="{{ url('/user/' . $user->user_id . '/update_ajax') }}" method="POST" id="form-edit">
     @csrf
-    @method('PUT') {{-- PENTING: Method PUT untuk update --}}
+    @method('PUT') 
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -31,7 +30,6 @@
                     <select name="level_id" id="level_id" class="form-control" required>
                         <option value="">- Pilih Level -</option>
                         @foreach($level as $l)
-                            {{-- Seleksi otomatis level user saat ini --}}
                             <option {{ ($l->level_id == $user->level_id) ? 'selected' : '' }} value="{{ $l->level_id }}">{{ $l->level_nama }}</option>
                         @endforeach
                     </select>
@@ -83,7 +81,7 @@
                                     title: 'Berhasil',
                                     text: response.message
                                 });
-                                dataUser.ajax.reload(); // Refresh tabel otomatis
+                                $('#table_user').DataTable().ajax.reload();
                             } else {
                                 $('.error-text').text('');
                                 $.each(response.msgField, function(prefix, val) {

@@ -65,7 +65,8 @@
                                 title: 'Berhasil',
                                 text: response.message
                             });
-                            dataUser.ajax.reload(); // Reload datatable
+                            // PERBAIKAN: Gunakan selector ID tabel, bukan variabel dataUser
+                            $('#table_user').DataTable().ajax.reload(); 
                         } else {
                             $('.error-text').text('');
                             $.each(response.msgField, function(prefix, val) {
