@@ -15,14 +15,13 @@
         </div>
     </div>
 @else
-    {{-- Perhatikan action form mengarah ke update_ajax --}}
     <form action="{{ url('/kategori/' . $kategori->kategori_id . '/update_ajax') }}" method="POST" id="form-edit">
     @csrf
-    @method('PUT') {{-- PENTING: Method PUT untuk update --}}
+    @method('PUT')
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Edit Data kategori</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Edit Data Kategori</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
@@ -33,7 +32,8 @@
                 </div>
                 <div class="form-group">
                     <label>Nama Kategori</label>
-                    <input value="{{ $kategori->kategori_nama }}" type="text" name="kstegori_nama" id="kategori_nama" class="form-control" required>
+                    {{-- PERBAIKAN DI SINI: sebelumnya "kstegori_nama" (typo) --}}
+                    <input value="{{ $kategori->kategori_nama }}" type="text" name="kategori_nama" id="kategori_nama" class="form-control" required>
                     <small id="error-kategori_nama" class="error-text form-text text-danger"></small>
                 </div>
             </div>
@@ -48,7 +48,7 @@
         $(document).ready(function() {
             $("#form-edit").validate({
                 rules: {
-                    kategori_kode: {required: true, minlength: 3, maxlength: 20},
+                    kategori_kode: {required: true, minlength: 2, maxlength: 10}, // Sesuaikan dengan controller (min:2, max:10)
                     kategori_nama: {required: true, minlength: 3, maxlength: 100},
                 },
                 submitHandler: function(form) {
@@ -64,7 +64,14 @@
                                     title: 'Berhasil',
                                     text: response.message
                                 });
-                                dataKategori.ajax.reload(); // Refresh tabel otomatis
+                                // Pastikan variabel tabel di index.blade.php Anda bernama 'dataKategori'
+                                // Jika error "dataKategori is not defined", cek nama variabel di index.blade.php
+                                if(typeof dataKategori !== 'undefined') {
+                                    dataKategori.ajax.reload();
+                                } else {
+                                    // Fallback jika nama variabel beda, cari berdasarkan ID tabel
+                                    $('#table_kategori').DataTable().ajax.reload();
+                                }
                             } else {
                                 $('.error-text').text('');
                                 $.each(response.msgField, function(prefix, val) {
